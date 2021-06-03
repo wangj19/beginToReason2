@@ -4,14 +4,15 @@ Main file for displaying graphs.
 import json
 import re
 from accounts.models import UserInformation
-from core.models import LessonSet, MainSet
+from core.models import LessonSet, LessonSetLessons, MainSet
 from data_analysis.models import DataLog
 from data_analysis.py_helper_functions.graph_viewer.node import Node
 
 
 # Takes a lesson index and returns a JSON representation fit for D3
 def lesson_to_json(class_id, mainset_id, lessonset_index, is_anonymous):
-    lesson = _find_main_lesson(MainSet.objects.get(id=mainset_id).lessons.all()[lessonset_index].lessons.all())
+    lesson = _find_main_lesson(MainSet.set_by_index(mainset_id,lessonset_index).lessons())
+
     (root, users) = _lesson_to_graph(class_id, lesson, is_anonymous)
     nodes = []
     edges = []
@@ -27,9 +28,9 @@ def lesson_to_json(class_id, mainset_id, lessonset_index, is_anonymous):
 
 # Returns JSON containing info that graph needs to display about the lesson
 def lesson_info(mainset_id, lessonset_index):
-    lesson_sets = MainSet.objects.get(id=mainset_id).lessons.all()
-    lesson_set = lesson_sets[lessonset_index]
-    lesson = _find_main_lesson(lesson_set.lessons.all())
+    lesson_sets = MainSet.sets(mainset_id)
+    lesson_set = MainSet.set_by_index(mainset_id,lessonset_index)
+    lesson = _find_main_lesson(lesson_set.lessons())
     return json.dumps({"lessonName": lesson.lesson_name, "lessonTitle": lesson.lesson_title,
                        "lessonSetName": lesson_set.set_name, "code": lesson.code.lesson_code,
                        "prevLessonSet": _find_prev_lesson_set(lessonset_index),
@@ -45,7 +46,7 @@ Helper methods
 # Takes a lesson index and returns the START node of its graph representation
 def _lesson_to_graph(class_id, lesson, is_anonymous):
     user_number = 0
-    query = DataLog.objects.filter(lesson_key=lesson.id, class_key=class_id).order_by('user_key', 'time_stamp')
+    query = DataLog.objects.filter(lesson_key=lesson.id).order_by('user_key', 'time_stamp')
     start_node = Node(Node.START_NAME, False)
     if not query:
         # Nobody has taken this lesson yet!
@@ -149,10 +150,10 @@ def _find_next_lesson_set(current_lesson_set_index, lesson_sets):
 
 # Find the non-alternate lesson in the array of lessons
 def _find_main_lesson(lessons):
-    for lesson in lessons:
-        if not lesson.is_alternate:
-            return lesson
-    print("Couldn't find a non-alternate lesson! Defaulting to the first one...")
+    # for lesson in lessons:
+    #     if not lesson.is_alternate:
+    #         return lesson
+    # print("Couldn't find a non-alternate lesson! Defaulting to the first one...")
     return lessons[0]
 
 

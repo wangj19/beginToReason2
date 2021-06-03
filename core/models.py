@@ -360,7 +360,7 @@ class MainSet(models.Model):
 
     def sets(self):
         """"
-        function set_by_index returns ordered list of the lesson sets within the main set
+        function sets returns ordered list of the lesson sets within the main set
         Returns:
             array: List of lesson sets
         """

@@ -20,7 +20,7 @@ def d3_graph(request, classID, mainSetID, lessonSetIndex):
         HttpResponse: A generated http response object to the request to generate the graph
     """
     print(request)
-    return render(request, "data_analysis/d3graph.html",
+    return render(request, "data_analysis/d3Graph.html",
                   {'graphData': lesson_to_json(classID, mainSetID, lessonSetIndex, True),
                    'lessonData': lesson_info(mainSetID, lessonSetIndex)})
 
